@@ -631,3 +631,190 @@ commonly) integers (the default is numbered from 0 to length-1)
     1. Integers - for case or row numbers (default is numbered from 0 to length-1);
     2. Strings – for case names; or
     3. DatetimeIndex or PeriodIndex – for time series data (more below)
+
+__Indexing__
+
+    # --- selecting columns
+    s = df['col_label'] # scalar
+    df = df[['col_label']] # one item list
+    df = df[['L1', 'L2']] # many item list
+    df = df[index] # pandas Index
+    df = df[s] # pandas Series
+    # --- selecting rows
+    df = df['from':'inc_to']# label slice
+    df = df[3:7] # integer slice
+    df = df[df['col'] > 0.5]# Boolean Series
+    df = df.loc['label'] # single label
+    df = df.loc[container] # lab list/Series
+    df = df.loc['from':'to']# inclusive slice
+    df = df.loc[bs] # Boolean Series
+    df = df.iloc[0] # single integer
+    df = df.iloc[container] # int list/Series
+    df = df.iloc[0:5] # exclusive slice
+    df = df.ix[x] # loc then iloc
+    # --- select DataFrame cross-section
+    # r and c can be scalar, list, slice
+    df.loc[r, c] # label accessor (row, col)
+    df.iloc[r, c]# integer accessor
+    df.ix[r, c] # label access int fallback
+    df[c].iloc[r]# chained – also for .loc
+    # --- select cell
+    # r and c must be label or integer
+    df.at[r, c] # fast scalar label accessor
+    df.iat[r, c] # fast scalar int accessor
+    df[c].iat[r] # chained – also for .at
+    # --- indexing methods
+    v = df.get_value(r, c) # get by row, col
+    df = df.set_value(r,c,v)# set by row, col
+    df = df.xs(key, axis) # get cross-section
+    df = df.filter(items, like, regex, axis)
+    df = df.select(crit, axis)
+
+Note: the indexing attributes (.loc, .iloc, .ix, .at .iat) can be used to get and set values in the DataFrame.
+
+Note: the .loc, iloc and .ix indexing attributes can accept python slice objects. But .at and .iat do not.
+
+Note: .loc can also accept Boolean Series arguments
+
+Avoid: chaining in the form df[col_indexer][row_indexer]
+
+Trap: label slices are inclusive, integer slices exclusive.
+
+### Joining/Combining DataFrames
+
+Three ways to join two DataFrames:
+1. merge (a database/SQL-like join operation)
+2. concat (stack side by side or one on top of the other)
+3. combine_first (splice the two together, choosing values from one over the other)
+
+__Merge on indexes__
+
+    df_new = pd.merge(left=df1, right=df2,
+    how='outer', left_index=True,
+    right_index=True)
+
+How: 'left', 'right', 'outer', 'inner'
+
+How: outer=union/all; inner=intersection
+
+__Merge on columns__
+
+    df_new = pd.merge(left=df1, right=df2,
+    how='left', left_on='col1',
+    right_on='col2')
+
+Trap: When joining on columns, the indexes on the passed DataFrames are ignored.
+
+Trap: many-to-many merges on a column can result in an explosion of associated data.
+
+__Join on indexes (another way of merging)__
+
+    df_new = df1.join(other=df2, on='col1',
+    how='outer')
+    df_new = df1.join(other=df2,on=['a','b'],
+    how='outer')
+
+Note: DataFrame.join() joins on indexes by default. DataFrame.merge() joins on common columns by
+default. 
+
+__Simple concatenation is often the best__
+
+    df=pd.concat([df1,df2],axis=0)#top/bottom
+    df = df1.append([df2, df3]) #top/bottom
+    df=pd.concat([df1,df2],axis=1)#left/right
+
+Trap: can end up with duplicate rows or cols
+
+Note: concat has an ignore_index parameter
+
+__Combine_first__
+
+    df = df1.combine_first(other=df2)
+    # multi-combine with python reduce()
+    df = reduce(lambda x, y:
+    x.combine_first(y),
+    [df1, df2, df3, df4, df5])
+
+Uses the non-null values from df1. The index of the combined DataFrame will be the union of the indexes
+from df1 and df2.
+
+### Groupby: Split-Apply-Combine
+
+The pandas "groupby" mechanism allows us to split the data into groups, apply a function to each group independently and then combine the results.
+
+__Grouping__
+
+    gb = df.groupby('cat') # by one columns
+    gb = df.groupby(['c1','c2']) # by 2 cols
+    gb = df.groupby(level=0) # multi-index gb
+    gb = df.groupby(level=['a','b']) # mi gb
+    print(gb.groups)
+
+Note: groupby() returns a pandas groupby object
+
+Note: the groupby object attribute .groups contains a dictionary mapping of the groups.
+
+Trap: NaN values in the group key are automatically dropped – there will never be a NA group.
+
+__Iterating groups – usually not needed__
+
+    for name, group in gb:
+        print (name)
+        print (group)
+
+__Selecting a group__
+
+    dfa = df.groupby('cat').get_group('a')
+    dfb = df.groupby('cat').get_group('b')
+
+__Applying an aggregating function__
+
+    # apply to a column ...
+    s = df.groupby('cat')['col1'].sum()
+    s = df.groupby('cat')['col1'].agg(np.sum)
+    # apply to the every column in DataFrame
+    s = df.groupby('cat').agg(np.sum)
+    df_summary = df.groupby('cat').describe()
+    df_row_1s = df.groupby('cat').head(1)
+
+Note: aggregating functions reduce the dimension by one – they include: mean, sum, size, count, std, var,
+sem, describe, first, last, min, max
+
+__Applying multiple aggregating functions__
+
+    gb = df.groupby('cat')
+    # apply multiple functions to one column
+    dfx = gb['col2'].agg([np.sum, np.mean])
+    # apply to multiple fns to multiple cols
+    dfy = gb.agg({
+    'cat': np.count_nonzero,
+    'col1': [np.sum, np.mean, np.std],
+    'col2': [np.min, np.max]
+    })
+
+Note: gb['col2'] above is shorthand for df.groupby('cat')['col2'], without the need for regrouping.
+
+__Transforming functions__
+
+    # transform to group z-scores, which have
+    # a group mean of 0, and a std dev of 1.
+    zscore = lambda x: (x-x.mean())/x.std()
+    dfz = df.groupby('cat').transform(zscore)
+    # replace missing data with group mean
+    mean_r = lambda x: x.fillna(x.mean())
+    dfm = df.groupby('cat').transform(mean_r)
+
+Note: can apply multiple transforming functions in a manner similar to multiple aggregating functions above.
+
+__Applying filtering functions__
+
+Filtering functions allow you to make selections based on whether each group meets specified criteria
+
+    # select groups with more than 10 members
+    eleven = lambda x: (len(x['col1']) >= 11)
+    df11 = df.groupby('cat').filter(eleven)
+    Group by a row index (non-hierarchical index)
+    df = df.set_index(keys='cat')
+    s = df.groupby(level=0)['col1'].sum()
+    dfg = df.groupby(level=0).sum()
+
