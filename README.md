@@ -1025,3 +1025,174 @@ DataFrame columns that contain datetime-like objects can be manipulated with the
     print(s.dtype) # datetime64[ns]
     print(s.dt.quarter) # 2, 2, 2
     print(s.dt.year) # 2012, 2011, 2010
+
+### Working with missing and non-finite data
+
+__Working with missing data__
+
+Pandas uses the not-a-number construct (np.nan and float('nan')) to indicate missing data. The Python None
+can arise in data as well. It is also treated as missing data; as is the pandas not-a-time construct
+(pandas.NaT).
+
+__Missing data in a Series__
+
+    s = Series( [8,None,float('nan'),np.nan])
+    #[8, NaN, NaN, NaN]
+    s.isnull() #[False, True, True, True]
+    s.notnull()#[True, False, False, False]
+    s.fillna(0)#[8, 0, 0, 0]
+
+__Missing data in a DataFrame__
+    df = df.dropna() # drop all rows with NaN
+    df = df.dropna(axis=1) # same for cols
+    df=df.dropna(how='all') #drop all NaN row
+    df=df.dropna(thresh=2) # drop 2+ NaN in r
+    # only drop row if NaN in a specified col
+    df = df.dropna(df['col'].notnull())
+
+__Recoding missing data__
+
+    df.fillna(0, inplace=True) # np.nan ! 0
+    s = df['col'].fillna(0) # np.nan ! 0
+    df = df.replace(r'\s+', np.nan,
+    regex=True) # white space ! np.nan
+
+__Non-finite numbers__
+
+With floating point numbers, pandas provides for positive and negative infinity.
+    s = Series([float('inf'), float('-inf'),
+    np.inf, -np.inf])
+
+Pandas treats integer comparisons with plus or minus infinity as expected.
+
+__Testing for finite numbers__
+
+(using the data from the previous example)
+
+    b = np.isfinite(s)
+
+### Working with Categorical Data
+
+__Categorical data__
+
+The pandas Series has an R factors-like data type for encoding categorical data.
+
+    s = Series(['a','b','a','c','b','d','a'],
+    dtype='category')
+    df['B'] = df['A'].astype('category')
+
+Note: the key here is to specify the "category" data type.
+
+Note: categories will be ordered on creation if they are sortable. This can be turned off. See ordering below.
+
+__Convert back to the original data type__
+
+    s = Series(['a','b','a','c','b','d','a'],
+    dtype='category')
+    s = s.astype('string')
+    Ordering, reordering and sorting
+    s = Series(list('abc'), dtype='category')
+    print (s.cat.ordered)
+    s=s.cat.reorder_categories(['b','c','a'])
+    s = s.sort()
+    s.cat.ordered = False
+    
+Trap: category must be ordered for it to be sorted
+
+__Renaming categories__
+
+    s = Series(list('abc'), dtype='category')
+    s.cat.categories = [1, 2, 3] # in place
+    s = s.cat.rename_categories([4,5,6])
+    # using a comprehension ...
+    s.cat.categories = ['Group ' + str(i)
+    for i in s.cat.categories]
+
+Trap: categories must be uniquely named
+
+__Adding new categories__
+
+    s = s.cat.add_categories([4])
+
+__Removing categories__
+
+    s = s.cat.remove_categories([4])
+    s.cat.remove_unused_categories() #inplace
+
+### Working with strings
+
+__Working with strings__
+
+    # assume that df['col'] is series of
+    strings
+    s = df['col'].str.lower()
+    s = df['col'].str.upper()
+    s = df['col'].str.len()
+    # the next set work like Python
+    df['col'] += 'suffix' # append
+    df['col'] *= 2 # duplicate
+    s = df['col1'] + df['col2'] # concatenate
+
+Most python string functions are replicated in the pandas DataFrame and Series objects.
+
+__Regular expressions__
+
+    s = df['col'].str.contains('regex')
+    s = df['col'].str.startswith('regex')
+    s = df['col'].str.endswith('regex')
+    s = df['col'].str.replace('old', 'new')
+    df['b'] = df.a.str.extract('(pattern)')
+
+Note: pandas has many more regex methods.
+
+### Basic Statistics
+
+__Summary statistics__
+
+    s = df['col1'].describe()
+    df1 = df.describe()
+    DataFrame – key stats methods
+    df.corr() # pairwise correlation cols
+    df.cov() # pairwise covariance cols
+    df.kurt() # kurtosis over cols (def)
+    df.mad() # mean absolute deviation
+    df.sem() # standard error of mean
+    df.var() # variance over cols (def)
+
+__Value counts__
+
+    s = df['col1'].value_counts()
+    
+__Cross-tabulation (frequency count)__
+
+    ct = pd.crosstab(index=df['a'],
+    cols=df['b'])
+
+__Quantiles and ranking__
+
+    quants = [0.05, 0.25, 0.5, 0.75, 0.95]
+    q = df.quantile(quants)
+    r = df.rank()
+
+__Histogram binning__
+
+    count, bins = np.histogram(df['col1'])
+    count, bins = np.histogram(df['col'],
+    bins=5)
+    count, bins = np.histogram(df['col1'],
+    bins=[-3,-2,-1,0,1,2,3,4])
+
+__Regression__
+
+    import statsmodels.formula.api as sm
+    result = sm.ols(formula="col1 ~ col2 +
+    col3", data=df).fit()
+    print (result.params)
+    print (result.summary())
+
+__Smoothing example using rolling_apply__
+    k3x5 = np.array([1,2,3,3,3,2,1]) / 15.0
+    s = pd.rolling_apply(df['col1'],
+    window=7,
+    func=lambda x: (x * k3x5).sum(),
+    min_periods=7, center=True)
