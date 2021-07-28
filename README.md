@@ -171,8 +171,82 @@ __Saving a DataFrame to MySQL__
 Note: if_exists ! 'fail', 'replace', 'append'
 
 __Saving a DataFrame to a Python dictionary__
+
     dictionary = df.to_dict()
     Saving a DataFrame to a Python string
     string = df.to_string()
 
 Note: sometimes may be useful for debugging
+
+### Working with the whole DataFrame
+__Peek at the DataFrame contents__
+
+    df.info() # index & data types
+    n = 4
+    dfh = df.head(n) # get first n rows
+    dft = df.tail(n) # get last n rows
+    dfs = df.describe() # summary stats cols
+    top_left_corner_df = df.iloc[:5, :5]
+
+__DataFrame non-indexing attributes__
+
+    dfT = df.T # transpose rows and cols
+    l = df.axes # list row and col indexes
+    (r, c) = df.axes # from above
+    s = df.dtypes # Series column data types
+    b = df.empty # True for empty DataFrame
+    i = df.ndim # number of axes (2)
+    t = df.shape # (row-count, column-count)
+    (r, c) = df.shape # from above
+    i = df.size # row-count * column-count
+    a = df.values # get a numpy array for df
+
+__DataFrame utility methods__
+
+    dfc = df.copy() # copy a DataFrame
+    dfr = df.rank() # rank each col (default)
+    dfs = df.sort() # sort each col (default)
+    dfc = df.astype(dtype) # type conversion
+
+__DataFrame iteration methods__
+
+    df.iteritems()# (col-index, Series) pairs
+    df.iterrows() # (row-index, Series) pairs
+    # example ... iterating over columns
+    for (name, series) in df.iteritems():
+    print('Col name: ' + str(name))
+    print('First value: ' +
+    str(series.iat[0]) + '\n')
+
+__Maths on the whole DataFrame (not a complete list)__
+
+    df = df.abs() # absolute values
+    df = df.add(o) # add df, Series or value
+    s = df.count() # non NA/null values
+    df = df.cummax() # (cols default axis)
+    df = df.cummin() # (cols default axis)
+    df = df.cumsum() # (cols default axis)
+    df = df.cumprod() # (cols default axis)
+    df = df.diff() # 1st diff (col def axis)
+    df = df.div(o) # div by df, Series, value
+    df = df.dot(o) # matrix dot product
+    s = df.max() # max of axis (col def)
+    s = df.mean() # mean (col default axis)
+    s = df.median()# median (col default)
+    s = df.min() # min of axis (col def)
+    df = df.mul(o) # mul by df Series val
+    s = df.sum() # sum axis (cols default)
+
+Note: The methods that return a series default to working on columns.
+
+__DataFrame filter/select rows or cols on label info__
+
+    df = df.filter(items=['a', 'b']) # by col
+    df = df.filter(items=[5], axis=0) #by row
+    df = df.filter(like='x') # keep x in col
+    df = df.filter(regex='x') # regex in col
+    df = df.select(crit=(lambda x:not x%5))#r
+
+Note: select takes a Boolean function, for cols: axis=1
+
+Note: filter defaults to cols; select defaults to rows 
