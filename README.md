@@ -1191,6 +1191,7 @@ __Regression__
     print (result.summary())
 
 __Smoothing example using rolling_apply__
+
     k3x5 = np.array([1,2,3,3,3,2,1]) / 15.0
     s = pd.rolling_apply(df['col1'],
     window=7,
