@@ -168,7 +168,7 @@ __Saving a DataFrame to MySQL__
     'USER:PASSWORD@localhost/DATABASE')
     df.to_sql('TABLE',e, if_exists='replace')
 
-Note: if_exists ! 'fail', 'replace', 'append'
+Note: if_exists --> 'fail', 'replace', 'append'
 
 __Saving a DataFrame to a Python dictionary__
 
