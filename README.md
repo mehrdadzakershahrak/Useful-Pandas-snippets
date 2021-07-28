@@ -41,3 +41,25 @@ __The index object:__ The pandas Index provides the axis labels for the Series a
     i = idx.nunique() # number unique labels
     label = idx.min() # minimum label
     label = idx.max() # maximum label
+
+### Get your data into a DataFrame
+
+__Load a DataFrame from a CSV file__
+
+    df = pd.read_csv('file.csv')# often works
+    df = pd.read_csv(‘file.csv’, header=0,
+    index_col=0, quotechar=’”’,sep=’:’,
+    na_values = [‘na’, ‘-‘, ‘.’, ‘’])
+
+Please refer to pandas docs for all arguments
+
+__From inline CSV text to a DataFrame__
+
+    from StringIO import StringIO # python2.7
+    #from io import StringIO # python 3
+    data = """, Animal, Cuteness, Desirable
+    row-1, dog, 8.7, True
+    row-2, bat, 2.6, False"""
+    df = pd.read_csv(StringIO(data),
+    header=0, index_col=0,
+    skipinitialspace=True)
