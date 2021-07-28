@@ -68,8 +68,7 @@ Note: _skipinitialspace_=True allows a pretty layout
 
 __Load DataFrames from a Microsoft Excel file__
 
-### Each Excel sheet in a Python dictionary
-
+    #Each Excel sheet in a Python dictionary
     workbook = pd.ExcelFile('file.xlsx')
     dictionary = {}
     for sheet_name in workbook.sheet_names:
@@ -79,6 +78,7 @@ __Load DataFrames from a Microsoft Excel file__
 Note: the parse() method takes many arguments like read_csv() above. Refer to the pandas documentation.
 
 __Load a DataFrame from a MySQL database__
+
     import pymysql
     from sqlalchemy import create_engine
     engine = create_engine('mysql+pymysql://'
@@ -98,10 +98,13 @@ __Data in Series then combine into a DataFrame__
     df = pd.concat({'A':s3, 'B':s4 }, axis=1)
 
 Note: 1st method has in integer column labels
+
 Note: 2nd method does not guarantee col order
+
 Note: index alignment on DataFrame creation
 
 __Get a DataFrame from data in a Python dictionary__
+
     # default --- assume data is in columns
     df = DataFrame({
     'col0' : [1.0, 2.0, 3.0, 4.0],
