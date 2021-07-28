@@ -72,8 +72,8 @@ __Load DataFrames from a Microsoft Excel file__
     workbook = pd.ExcelFile('file.xlsx')
     dictionary = {}
     for sheet_name in workbook.sheet_names:
-    df = workbook.parse(sheet_name)
-    dictionary[sheet_name] = df
+        df = workbook.parse(sheet_name)
+        dictionary[sheet_name] = df
 
 Note: the parse() method takes many arguments like read_csv() above. Refer to the pandas documentation.
 
@@ -214,9 +214,9 @@ __DataFrame iteration methods__
     df.iterrows() # (row-index, Series) pairs
     # example ... iterating over columns
     for (name, series) in df.iteritems():
-    print('Col name: ' + str(name))
-    print('First value: ' +
-    str(series.iat[0]) + '\n')
+        print('Col name: ' + str(name))
+        print('First value: ' +
+        str(series.iat[0]) + '\n')
 
 __Maths on the whole DataFrame (not a complete list)__
 
