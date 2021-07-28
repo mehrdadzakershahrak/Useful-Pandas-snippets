@@ -215,8 +215,7 @@ __DataFrame iteration methods__
     # example ... iterating over columns
     for (name, series) in df.iteritems():
         print('Col name: ' + str(name))
-        print('First value: ' +
-        str(series.iat[0]) + '\n')
+        print('First value: ' + str(series.iat[0]) + '\n')
 
 __Maths on the whole DataFrame (not a complete list)__
 
