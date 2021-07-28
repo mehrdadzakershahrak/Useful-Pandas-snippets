@@ -577,6 +577,7 @@ __Setting a cross-section by labels__
 Remember: inclusive "to" in the slice
 
 __Selecting a cell by integer position__
+
     value = df.iat[9, 3] # [row, col]
     value = df.iloc[0, 0] # [row, col]
     value = df.iloc[len(df)-1,
