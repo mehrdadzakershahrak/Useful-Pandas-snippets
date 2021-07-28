@@ -63,3 +63,5 @@ __From inline CSV text to a DataFrame__
     df = pd.read_csv(StringIO(data),
     header=0, index_col=0,
     skipinitialspace=True)
+
+Note: _skipinitialspace=True allows a pretty layout
