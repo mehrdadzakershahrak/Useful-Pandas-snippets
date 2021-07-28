@@ -64,4 +64,46 @@ __From inline CSV text to a DataFrame__
     header=0, index_col=0,
     skipinitialspace=True)
 
-Note: _skipinitialspace=True allows a pretty layout
+Note: _skipinitialspace_=True allows a pretty layout
+
+__Load DataFrames from a Microsoft Excel file__
+
+### Each Excel sheet in a Python dictionary
+
+    workbook = pd.ExcelFile('file.xlsx')
+    dictionary = {}
+    for sheet_name in workbook.sheet_names:
+    df = workbook.parse(sheet_name)
+    dictionary[sheet_name] = df
+
+Note: the parse() method takes many arguments like read_csv() above. Refer to the pandas documentation.
+
+__Load a DataFrame from a MySQL database__
+    import pymysql
+    from sqlalchemy import create_engine
+    engine = create_engine('mysql+pymysql://'
+    +'USER:PASSWORD@localhost/DATABASE')
+    df = pd.read_sql_table('table', engine)
+
+__Data in Series then combine into a DataFrame__
+
+    # Example 1 ...
+    s1 = Series(range(6))
+    s2 = s1 * s1
+    s2.index = s2.index + 2# misalign indexes
+    df = pd.concat([s1, s2], axis=1)
+    # Example 2 ...
+    s3 = Series({'Tom':1, 'Dick':4, 'Har':9})
+    s4 = Series({'Tom':3, 'Dick':2, 'Mar':5})
+    df = pd.concat({'A':s3, 'B':s4 }, axis=1)
+
+Note: 1st method has in integer column labels
+Note: 2nd method does not guarantee col order
+Note: index alignment on DataFrame creation
+
+__Get a DataFrame from data in a Python dictionary__
+    # default --- assume data is in columns
+    df = DataFrame({
+    'col0' : [1.0, 2.0, 3.0, 4.0],
+    'col1' : [100, 200, 300, 400]
+    })
