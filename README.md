@@ -818,3 +818,210 @@ Filtering functions allow you to make selections based on whether each group mee
     s = df.groupby(level=0)['col1'].sum()
     dfg = df.groupby(level=0).sum()
 
+### Pivot Tables
+
+__Pivot__
+
+Pivot tables move from long format to wide format data
+
+    df = DataFrame(np.random.rand(100,1))
+    df.columns = ['data'] # rename col
+    df.index = pd.period_range('3/3/2014',
+    periods=len(df), freq='M')
+    df['year'] = df.index.year
+    df['month'] = df.index.month
+    # pivot to wide format
+    df = df.pivot(index='year',
+    columns='month', values='data')
+    # melt to long format
+    dfm = df
+    dfm['year'] = dfm.index
+    dfm = pd.melt(df, id_vars=['year'],
+    var_name='month', value_name='data')
+    # unstack to long format
+    # reset index to remove multi-level index
+    dfu=df.unstack().reset_index(name='data')
+
+__Value counts__
+
+    s = df['col1'].value_counts()
+
+### Working with dates, times and their indexes
+
+__Dates and time – points and spans__
+
+With its focus on time-series data, pandas has a suite of tools for managing dates and time: either as a point in time (a Timestamp) or as a span of time (a Period).
+
+    t = pd.Timestamp('2013-01-01')
+    t = pd.Timestamp('2013-01-01 21:15:06')
+    t = pd.Timestamp('2013-01-01 21:15:06.7')
+    p = pd.Period('2013-01-01', freq='M')
+
+Note: Timestamps should be in range 1678 and 2261 years. (Check Timestamp.max and Timestamp.min).
+
+__A Series of Timestamps or Periods__
+
+    ts = ['2015-04-01 13:17:27',
+    '2014-04-02 13:17:29']
+    # Series of Timestamps (good)
+    s = pd.to_datetime(pd.Series(ts))
+    # Series of Periods (often not so good)
+    s = pd.Series( [pd.Period(x, freq='M')
+    for x in ts] )
+    s = pd.Series(
+    pd.PeriodIndex(ts,freq='S'))
+
+Note: While Periods make a very useful index; they may be less useful in a Series.
+
+__From non-standard strings to Timestamps__
+
+    t = ['09:08:55.7654-JAN092002',
+    '15:42:02.6589-FEB082016']
+    s = pd.Series(pd.to_datetime(t,
+    format="%H:%M:%S.%f-%b%d%Y"))
+
+Also: %B = full month name; %m = numeric month;
+%y = year without century; and more ...
+
+__Dates and time – stamps and spans as indexes__
+
+An index of Timestamps is a DatetimeIndex.
+
+An index of Periods is a PeriodIndex.
+
+    date_strs = ['2014-01-01', '2014-04-01',
+    '2014-07-01', '2014-10-01']
+    dti = pd.DatetimeIndex(date_strs)
+    pid = pd.PeriodIndex(date_strs, freq='D')
+    pim = pd.PeriodIndex(date_strs, freq='M')
+    piq = pd.PeriodIndex(date_strs, freq='Q')
+    print (pid[1] - pid[0]) # 90 days
+    print (pim[1] - pim[0]) # 3 months
+    print (piq[1] - piq[0]) # 1 quarter
+    time_strs = ['2015-01-01 02:10:40.12345',
+    '2015-01-01 02:10:50.67890']
+    pis = pd.PeriodIndex(time_strs, freq='U')
+    df.index = pd.period_range('2015-01',
+    periods=len(df), freq='M')
+    dti = pd.to_datetime(['04-01-2012'],
+    dayfirst=True) # Australian date format
+    pi = pd.period_range('1960-01-01',
+    '2015-12-31', freq='M')
+
+Hint: unless you are working in less than seconds, prefer PeriodIndex over DateTimeImdex.
+
+__From DatetimeIndex to Python datetime objects__
+
+    dti = pd.DatetimeIndex(pd.date_range(
+    start='1/1/2011', periods=4, freq='M'))
+    s = Series([1,2,3,4], index=dti)
+    na = dti.to_pydatetime() #numpy array
+    na = s.index.to_pydatetime() #numpy array
+
+__From Timestamps to Python dates or times__
+
+    df['date'] = [x.date() for x in df['TS']]
+    df['time'] = [x.time() for x in df['TS']]
+
+Note: converts to datatime.date or datetime.time. But does not convert to datetime.datetime.
+
+__From DatetimeIndex to PeriodIndex and back__
+
+    df = DataFrame(np.random.randn(20,3))
+    df.index = pd.date_range('2015-01-01',
+    periods=len(df), freq='M')
+    dfp = df.to_period(freq='M')
+    dft = dfp.to_timestamp()
+
+Note: from period to timestamp defaults to the point in time at the start of the period.
+
+__Working with a PeriodIndex__
+
+    pi = pd.period_range('1960-01','2015-12',
+    freq='M')
+    na = pi.values # numpy array of integers
+    lp = pi.tolist() # python list of Periods
+    sp = Series(pi)# pandas Series of Periods
+    ss = Series(pi).astype(str) # S of strs
+    ls = Series(pi).astype(str).tolist()
+
+__Get a range of Timestamps__
+
+    dr = pd.date_range('2013-01-01',
+    '2013-12-31', freq='D')
+
+__Error handling with dates__
+
+    # 1st example returns string not Timestamp
+    t = pd.to_datetime('2014-02-30')
+    # 2nd example returns NaT (not a time)
+    t = pd.to_datetime('2014-02-30',
+    coerce=True)
+    # NaT like NaN tests True for isnull()
+    b = pd.isnull(t) # --> True
+
+__The tail of a time-series DataFrame__
+
+    df = df.last("5M") # the last five months
+
+__Upsampling and downsampling__
+
+    # upsample from quarterly to monthly
+    pi = pd.period_range('1960Q1',
+    periods=220, freq='Q')
+    df = DataFrame(np.random.rand(len(pi),5),
+    index=pi)
+    dfm = df.resample('M', convention='end')
+    # use ffill or bfill to fill with values
+    # downsample from monthly to quarterly
+    dfq = dfm.resample('Q', how='sum')
+
+__Time zones__
+
+    t = ['2015-06-30 00:00:00',
+    '2015-12-31 00:00:00']
+    dti = pd.to_datetime(t
+    ).tz_localize('Australia/Canberra')
+    dti = dti.tz_convert('UTC')
+    ts = pd.Timestamp('now',
+    tz='Europe/London')
+    # get a list of all time zones
+    import pyzt
+    for tz in pytz.all_timezones:
+        print tz
+Note: by default, Timestamps are created without time zone information.
+
+__Row selection with a time-series index__
+
+    # start with the play data above
+    idx = pd.period_range('2015-01',
+    periods=len(df), freq='M')
+    df.index = idx
+    february_selector = (df.index.month == 2)
+    february_data = df[february_selector]
+    q1_data = df[(df.index.month >= 1) &
+    (df.index.month <= 3)]
+    mayornov_data = df[(df.index.month == 5)
+    | (df.index.month == 11)]
+    totals = df.groupby(df.index.year).sum()
+
+Also: year, month, day [of month], hour, minute, second, dayofweek [Mon=0 .. Sun=6], weekofmonth, weekofyear [numbered from 1], week starts on Monday], dayofyear
+[from 1], ...
+
+__The Series.dt accessor attribute__
+
+DataFrame columns that contain datetime-like objects can be manipulated with the .dt accessor attribute
+
+    t = ['2012-04-14 04:06:56.307000',
+    '2011-05-14 06:14:24.457000',
+    '2010-06-14 08:23:07.520000']
+    # a Series of time stamps
+    s = pd.Series(pd.to_datetime(t))
+    print(s.dtype) # datetime64[ns]
+    print(s.dt.second) # 56, 24, 7
+    print(s.dt.month) # 4, 5, 6
+    # a Series of time periods
+    s = pd.Series(pd.PeriodIndex(t,freq='Q'))
+    print(s.dtype) # datetime64[ns]
+    print(s.dt.quarter) # 2, 2, 2
+    print(s.dt.year) # 2012, 2011, 2010
