@@ -475,3 +475,76 @@ default start is 0; default end is len(df)
     df = df[::2] # every 2nd row (0 2 ..)
 
 Trap: a single integer without a colon is a column label for integer numbered columns.
+
+__Select a slice of rows by label/index__
+
+[inclusive-from : inclusive–to [ : step]]
+
+    df = df['a':'c'] # rows 'a' through 'c'
+
+Trap: doesn't work on integer labelled rows
+
+__Append a row of column totals to a DataFrame__
+
+    # Option 1: use dictionary comprehension
+    sums = {col: df[col].sum() for col in df}
+    sums_df = DataFrame(sums,index=['Total'])
+    df = df.append(sums_df)
+    # Option 2: All done with pandas
+    df = df.append(DataFrame(df.sum(),
+    columns=['Total']).T)
+
+__Iterating over DataFrame rows__
+    for (index, row) in df.iterrows(): # pass
+
+Trap: row data type may be coerced.
+
+__Sorting DataFrame rows values__
+
+    df = df.sort(df.columns[0],
+    ascending=False)
+    df.sort(['col1', 'col2'], inplace=True)
+
+__Random selection of rows__
+
+    import random as r
+    k = 20 # pick a number
+    selection = r.sample(range(len(df)), k)
+    df_sample = df.iloc[selection, :]
+
+Note: this sample is not sorted
+
+__Sort DataFrame by its row index__
+
+    df.sort_index(inplace=True) # sort by row
+    df = df.sort_index(ascending=False)
+
+__Drop duplicates in the row index__
+
+    df['index'] = df.index # 1 create new col
+    df = df.drop_duplicates(cols='index',
+    take_last=True)# 2 use new col
+    del df['index'] # 3 del the col
+    df.sort_index(inplace=True)# 4 tidy up
+
+__Test if two DataFrames have same row index__
+
+    len(a)==len(b) and all(a.index==b.index)
+
+__Get the integer position of a row or col index label__
+
+    i = df.index.get_loc('row_label')
+
+Trap: index.get_loc() returns an integer for a unique match. If not a unique match, may return a slice or
+mask.
+
+__Get integer position of rows that meet condition__
+
+    a = np.where(df['col'] >= 2) #numpy array
+
+__Test if the row index values are unique/monotonic__
+
+    if df.index.is_unique: pass # ...
+    b = df.index.is_monotonic_increasing
+    b = df.index.is_monotonic_decreasing
+
