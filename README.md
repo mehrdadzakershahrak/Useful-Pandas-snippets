@@ -548,3 +548,85 @@ __Test if the row index values are unique/monotonic__
     b = df.index.is_monotonic_increasing
     b = df.index.is_monotonic_decreasing
 
+### Working with cells
+
+__Selecting a cell by row and column labels__
+
+    value = df.at['row', 'col']
+    value = df.loc['row', 'col']
+    value = df['col'].at['row'] # tricky
+
+Note: .at[] fastest label based scalar lookup
+
+__Setting a cell by row and column labels__
+    df.at['row, 'col'] = value
+    df.loc['row, 'col'] = value
+    df['col'].at['row'] = value # tricky
+
+__Selecting and slicing on labels__
+    df = df.loc['row1':'row3', 'col1':'col3']
+
+Note: the "to" on this slice is inclusive.
+
+__Setting a cross-section by labels__
+
+    df.loc['A':'C', 'col1':'col3'] = np.nan
+    df.loc[1:2,'col1':'col2']=np.zeros((2,2))
+    df.loc[1:2,'A':'C']=othr.loc[1:2,'A':'C']
+
+Remember: inclusive "to" in the slice
+
+__Selecting a cell by integer position__
+    value = df.iat[9, 3] # [row, col]
+    value = df.iloc[0, 0] # [row, col]
+    value = df.iloc[len(df)-1,
+     len(df.columns)-1]
+
+__Selecting a range of cells by int position__
+    
+    df = df.iloc[2:4, 2:4] # subset of the df
+    df = df.iloc[:5, :5] # top left corner
+    s = df.iloc[5, :] # returns row as Series
+    df = df.iloc[5:6, :] # returns row as row
+
+Note: exclusive "to" – same as python list slicing.
+
+__Setting cell by integer position__
+
+    df.iloc[0, 0] = value # [row, col]
+    df.iat[7, 8] = value
+
+__Setting cell range by integer position__
+
+    df.iloc[0:3, 0:5] = value
+    df.iloc[1:3, 1:4] = np.ones((2, 3))
+    df.iloc[1:3, 1:4] = np.zeros((2, 3))
+    df.iloc[1:3, 1:4] = np.array([[1, 1, 1],
+    [2, 2, 2]])
+
+Remember: exclusive-to in the slice
+
+__.ix for mixed label and integer position indexing__
+
+    value = df.ix[5, 'col1']
+    df = df.ix[1:5, 'col1':'col3']
+
+__Views and copies__
+
+From the manual: Setting a copy can cause subtle
+errors. The rules about when a view on the data is
+returned are dependent on NumPy. Whenever an array
+of labels or a Boolean vector are involved in the indexing
+operation, the result will be a copy.
+
+### In summary: indexes and addresses
+
+In the main, these notes focus on the simple, single level Indexes. Pandas also has a hierarchical or multi-level Indexes (aka the MultiIndex).
+
+A DataFrame has two Indexes
+1. Typically, the column index (df.columns) is a list of strings (observed variable names) or (less
+commonly) integers (the default is numbered from 0 to length-1)
+2. Typically, the row index (df.index) might be:
+    1. Integers - for case or row numbers (default is numbered from 0 to length-1);
+    2. Strings – for case names; or
+    3. DatetimeIndex or PeriodIndex – for time series data (more below)
