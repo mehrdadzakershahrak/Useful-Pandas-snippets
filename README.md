@@ -249,4 +249,229 @@ __DataFrame filter/select rows or cols on label info__
 
 Note: select takes a Boolean function, for cols: axis=1
 
-Note: filter defaults to cols; select defaults to rows 
+Note: filter defaults to cols; select defaults to rows
+
+### Working with Columns
+
+A DataFrame column is a pandas Series object.
+
+__Get column index and labels__
+
+    idx = df.columns # get col index
+    label = df.columns[0] # 1st col label
+    lst = df.columns.tolist() # get as a list
+
+__Change column labels__
+
+    df.rename(columns={'old':'new'},
+    inplace=True)
+    df = df.rename(columns={'a':1,'b':'x'})
+
+__Selecting columns__
+
+    s = df['colName'] # select col to Series
+    df = df[['colName']] # select col to df
+    df = df[['a','b']] # select 2 or more
+    df = df[['c','a','b']]# change order
+    s = df[df.columns[0]] # select by number
+    df = df[df.columns[[0, 3, 4]] # by number
+    s = df.pop('c') # get col & drop from df
+
+__Selecting columns with Python attributes__
+
+    s = df.a # same as s = df['a']
+    # cannot create new columns by attribute
+    df.existing_col = df.a / df.b
+    df['new_col'] = df.a / df.b
+
+Trap: column names must be valid identifiers.
+
+__Adding new columns to a DataFrame__
+
+    df['new_col'] = range(len(df))
+    df['new_col'] = np.repeat(np.nan,len(df))
+    df['random'] = np.random.rand(len(df))
+    df['index_as_col'] = df.index
+    df1[['b','c']] = df2[['e','f']]
+    df3 = df1.append(other=df2)
+
+Trap: When adding an indexed pandas object as a new column, only items from the new series that have a corresponding index in the DataFrame will be added.
+The receiving DataFrame is not extended to accommodate the new series. To merge, see below. Trap: when adding a python list or numpy array, the column will be added by integer position. 
+
+__Swap column contents – change column order__
+
+    df[['B', 'A']] = df[['A', 'B']]
+
+__Dropping columns (mostly by label)__
+
+    df = df.drop('col1', axis=1)
+    df.drop('col1', axis=1, inplace=True)
+    df = df.drop(['col1','col2'], axis=1)
+    s = df.pop('col') # drops from frame
+    del df['col'] # even classic python works
+    df.drop(df.columns[0], inplace=True)
+
+__Vectorised arithmetic on columns__
+
+    df['proportion']=df['count']/df['total']
+    df['percent'] = df['proportion'] * 100.0
+
+__Apply numpy mathematical functions to columns__
+
+    df['log_data'] = np.log(df['col1'])
+    df['rounded'] = np.round(df['col2'], 2)
+
+Note: Many more mathematical functions
+
+__Columns value set based on criteria__
+
+    df['b']=df['a'].where(df['a']>0,other=0)
+    df['d']=df['a'].where(df.b!=0,other=df.c)
+
+Note: where other can be a Series or a scalar
+
+__Data type conversions__
+
+    s = df['col'].astype(str) # Series dtype
+    na = df['col'].values # numpy array
+    pl = df['col'].tolist() # python list
+
+Note: useful dtypes for Series conversion: int, float, str
+
+Trap: index lost in conversion from Series to array or list
+
+__Common column-wide methods/attributes__
+
+    value = df['col'].dtype # type of data
+    value = df['col'].size # col dimensions
+    value = df['col'].count()# non-NA count
+    value = df['col'].sum()
+    value = df['col'].prod()
+    value = df['col'].min()
+    value = df['col'].max()
+    value = df['col'].mean()
+    value = df['col'].median()
+    value = df['col'].cov(df['col2'])
+    s = df['col'].describe()
+    s = df['col'].value_counts()
+
+__Find index label for min/max values in column__
+
+    label = df['col1'].idxmin()
+    label = df['col1'].idxmax()
+
+__Common column element-wise methods__
+
+    s = df['col'].isnull()
+    s = df['col'].notnull() # not isnull()
+    s = df['col'].astype(float)
+    s = df['col'].round(decimals=0)
+    s = df['col'].diff(periods=1)
+    s = df['col'].shift(periods=1)
+    s = df['col'].to_datetime()
+    s = df['col'].fillna(0) # replace NaN w 0
+    s = df['col'].cumsum()
+    s = df['col'].cumprod()
+    s = df['col'].pct_change(periods=4)
+    s = df['col'].rolling_sum(periods=4,
+    window=4)
+
+Note: also rolling_min(), rolling_max(), and many more.
+
+__Append a column of row sums to a DataFrame__
+
+    df['Total'] = df.sum(axis=1)
+
+Note: also means, mins, maxs, etc.
+
+__Multiply every column in DataFrame by Series__
+
+    df = df.mul(s, axis=0) # on matched rows
+
+Note: also add, sub, div, etc.
+
+__Selecting columns with .loc, .iloc and .ix__
+
+    df = df.loc[:, 'col1':'col2'] # inclusive
+    df = df.iloc[:, 0:2] # exclusive
+
+__Get the integer position of a column index label__
+
+    j = df.columns.get_loc('col_name')
+
+__Test if column index values are unique/monotonic__
+
+    if df.columns.is_unique: pass # ...
+    b = df.columns.is_monotonic_increasing
+    b = df.columns.is_monotonic_decreasing
+
+### Working with rows
+
+__Get the row index and labels__
+
+    idx = df.index # get row index
+    label = df.index[0] # 1st row label
+    lst = df.index.tolist() # get as a list
+
+__Change the (row) index__
+
+    df.index = idx # new ad hoc index
+    df.index = range(len(df)) # set with list
+    df = df.reset_index() # replace old w new
+    # note: old index stored as a col in df
+    df = df.reindex(index=range(len(df)))
+    df = df.set_index(keys=['r1','r2','etc'])
+    df.rename(index={'old':'new'},
+    inplace=True)
+
+__Adding rows__
+
+    df = original_df.append(more_rows_in_df)
+
+Hint: convert to a DataFrame and then append. Both
+DataFrames should have same column labels.
+
+__Dropping rows (by name)__
+
+    df = df.drop('row_label')
+    df = df.drop(['row1','row2']) # multi-row
+
+__Boolean row selection by values in a column__
+
+    df = df[df['col2'] >= 0.0]
+    df = df[(df['col3']>=1.0) |
+    (df['col1']<0.0)]
+    df = df[df['col'].isin([1,2,5,7,11])]
+    df = df[~df['col'].isin([1,2,5,7,11])]
+    df = df[df['col'].str.contains('hello')]
+
+Trap: bitwise "or", "and" “not” (ie. | & ~) co-opted to be Boolean operators on a Series of Boolean
+Trap: need parentheses around comparisons.
+
+__Selecting rows using isin over multiple columns__
+
+    # fake up some data
+    data = {1:[1,2,3], 2:[1,4,9], 3:[1,8,27]}
+    df = pd.DataFrame(data)
+    # multi-column isin
+    lf = {1:[1, 3], 3:[8, 27]} # look for
+    f = df[df[list(lf)].isin(lf).all(axis=1)]
+
+__Selecting rows using an index__
+
+    idx = df[df['col'] >= 2].index
+    print(df.ix[idx])
+
+__Select a slice of rows by integer position__
+
+[inclusive-from : exclusive-to [: step]]
+default start is 0; default end is len(df)
+
+    df = df[:] # copy DataFrame
+    df = df[0:2] # rows 0 and 1
+    df = df[-1:] # the last row
+    df = df[2:3] # row 2 (the third row)
+    df = df[:-1] # all but the last row
+    df = df[::2] # every 2nd row (0 2 ..)
+
+Trap: a single integer without a colon is a column label for integer numbered columns.
