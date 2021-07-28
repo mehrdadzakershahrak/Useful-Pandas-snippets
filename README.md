@@ -110,3 +110,69 @@ __Get a DataFrame from data in a Python dictionary__
     'col0' : [1.0, 2.0, 3.0, 4.0],
     'col1' : [100, 200, 300, 400]
     })
+
+__Get a DataFrame from data in a Python dictionary__
+
+    # --- use helper method for data in rows
+    df = DataFrame.from_dict({ # data by row
+    'row0' : {'col0':0, 'col1':'A'},
+    'row1' : {'col0':1, 'col1':'B'}
+    }, orient='index')
+    df = DataFrame.from_dict({ # data by row
+    'row0' : [1, 1+1j, 'A'],
+    'row1' : [2, 2+2j, 'B']
+    }, orient='index')
+
+__Create play/fake data (useful for testing)__
+
+    # --- simple
+    df = DataFrame(np.random.rand(50,5))
+    # --- with a time-stamp row index:
+    df = DataFrame(np.random.rand(500,5))
+    df.index = pd.date_range('1/1/2006',
+    periods=len(df), freq='M')
+    # --- with alphabetic row and col indexes
+    import string
+    import random
+    r = 52 # note: min r is 1; max r is 52
+    c = 5
+    df = DataFrame(np.random.randn(r, c),
+    columns = ['col'+str(i) for i in
+    range(c)],
+    index = list((string.uppercase +
+    string.lowercase)[0:r]))
+    df['group'] = list(
+    ''.join(random.choice('abcd')
+    for _ in range(r))
+    )
+
+### Saving a DataFrame
+
+__Saving a DataFrame to a CSV file__
+
+    df.to_csv('name.csv', encoding='utf-8')
+
+__Saving DataFrames to an Excel Workbook__
+
+    from pandas import ExcelWriter
+    writer = ExcelWriter('filename.xlsx')
+    df1.to_excel(writer,'Sheet1')
+    df2.to_excel(writer,'Sheet2')
+    writer.save()
+
+__Saving a DataFrame to MySQL__
+
+    import pymysql
+    from sqlalchemy import create_engine
+    e = create_engine('mysql+pymysql://' +
+    'USER:PASSWORD@localhost/DATABASE')
+    df.to_sql('TABLE',e, if_exists='replace')
+
+Note: if_exists ! 'fail', 'replace', 'append'
+
+__Saving a DataFrame to a Python dictionary__
+    dictionary = df.to_dict()
+    Saving a DataFrame to a Python string
+    string = df.to_string()
+
+Note: sometimes may be useful for debugging
