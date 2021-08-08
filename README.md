@@ -1041,7 +1041,7 @@ __Missing data in a Series__
     s.notnull()#[True, False, False, False]
     s.fillna(0)#[8, 0, 0, 0]
 
-__Missing data in a 
+__Missing data in a DataFrame__
 
     df = df.dropna() # drop all rows with NaN
     df = df.dropna(axis=1) # same for cols
